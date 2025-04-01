@@ -7,7 +7,7 @@
 #    O--------------------------------------------/
 
 .ifndef MODE
-  .equ MODE, 0
+.equ MODE, 0
 
 .weak VBE_DEFAULT_MODE # NOTE: Definimos como fraco, assim podemos mudar em qualquer outro lugar
 .equ VBE_DEFAULT_MODE, 0x117
@@ -67,5 +67,5 @@ SetMode:
   popw %cx
   ret
 .else
-  .warning "asm/atlas/video/mode.s is already defined!"
+  .warning "asm/video/mode.s is already defined!"
 .endif

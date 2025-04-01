@@ -6,7 +6,10 @@
 #    |                                            |
 #    O--------------------------------------------/
 
-.include "asm/atlas/video/mode.s"
+.include "asm/video/mode.s"
+.include "asm/cpu/gdt.s"
+.include "asm/io/ata.s"
+.include "asm/io/vga.s"
 
 .equ VBE_DEFAULT_MODE, 0x117
 
@@ -27,7 +30,7 @@
   call SetMode  # NOTE: Quando retornar, vamos está no novo modo de vídeo
 
   # NOTE: Carregando GDT para ir para o modo protegido
-  lgdt .gdt_ptr
+  lgdt GDTP
   
   # NOTE: Habilitando bit do gdt em cr0
   movl %cr0, %eax
@@ -59,30 +62,6 @@
   hlt
 
 .section .atlas.data, "a", @progbits
-.type .gdt_start, @object
-.gdt_start:
-  .long 0x00000000
-  .long 0x00000000
-
-  .word 0xFFFF
-  .word 0x0000
-  .byte 0x00
-  .byte 0b10011010
-  .byte 0b11001111
-  .byte 0x00
-
-  .word 0xFFFF
-  .word 0x0000
-  .byte 0x00
-  .byte 0b10010010
-  .byte 0b11001111
-  .byte 0x00
-.gdt_end:
-
-.type .gdt_ptr, @object
-.gdt_ptr:
-  .word .gdt_end - .gdt_start
-  .long .gdt_start
 
 .type .ModeInfo, @object
 .ModeInfo:

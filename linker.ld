@@ -20,15 +20,12 @@ SECTIONS {
   . = origin_text;
 
   .atlas.text : {
-    . = ALIGN(4);
     *(.atlas.text.atlas)
-    . = ALIGN(4);
-    *(.atlas.text.mode)
+    *(.atlas.text.*)
   }
 
   .atlas.data : {
-    . = ALIGN(4);
-    *(.atlas.data.atlas)
+    *(.atlas.data*)
   }
 
   . = origin_magic;

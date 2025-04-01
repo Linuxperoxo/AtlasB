@@ -1,39 +1,39 @@
- #    /--------------------------------------------O
- #    |                                            |
- #    |  COPYRIGHT : (c) 2025 per Linuxperoxo.     |
- #    |  AUTHOR    : Linuxperoxo                   |
- #    |  FILE      : atlas.s                       |
- #    |                                            |
- #    O--------------------------------------------/
+#    /--------------------------------------------O
+#    |                                            |
+#    |  COPYRIGHT : (c) 2025 per Linuxperoxo.     |
+#    |  AUTHOR    : Linuxperoxo                   |
+#    |  FILE      : atlas.s                       |
+#    |                                            |
+#    O--------------------------------------------/
 
-.section .atlas.text, "ax", @progbits
+.include "asm/atlas/video/mode.s"
+
+.equ VBE_DEFAULT_MODE, 0x117
+
+.section .atlas.text.atlas, "ax", @progbits
 .code16
 .align 4
 .type .AtlasReal, @function
 .AtlasReal:
   cli
-  
-  # NOTE: Pegando as informações do modo 0x117 do VBE 1024x768 2^16 cores
-  xorw %ax,         %ax
-  movw %ax,         %es
-  movw $.Mode_Info, %di
-  movw $0x4F01,     %ax
-  movw $0x117,      %cx
-  int  $0x10
 
-  # NOTE: Habilitando modo 0x117 e limpando a memoria de vídeo
-  movw $0x4F02, %ax
-  movw $0x4117, %bx
-  int  $0x10
+  movw $0x8000, %sp # NOTE: Configurando stack temporária
+
+  movw $.ModeInfo, %di # NOTE: Parameter Struct ptr: Lugar onde as informações do modo serão colocadas 
+  xorw %bx,        %bx # NOTE: Parameter Mode: Modo a ser carregado, se %bx == 0 então vamos usar o modo default
+  call GetMode         # NOTE: Quando retornar, se a BIOS suportar o modo, a struct .ModeInfo vai estar totalmente preenchida
+
+  xorw %bx, %bx # NOTE: Parameter Mode: Mesma ideia do %bx no GetMode
+  call SetMode  # NOTE: Quando retornar, vamos está no novo modo de vídeo
 
   # NOTE: Carregando GDT para ir para o modo protegido
   lgdt .gdt_ptr
-
+  
   # NOTE: Habilitando bit do gdt em cr0
   movl %cr0, %eax
   orl  $1,   %eax
   movl %eax, %cr0
-
+  
   # NOTE: Configurando segmento de dados
   movw $0x10, %ax
   movw %ax,   %ds
@@ -53,7 +53,8 @@
 
   # NOTE: Pegando ponteiro para framebuffer
   movl .ModeInfo_PhysBasePtr, %edi
-  movl $0xFFFF, 0(%edi) # NOTE: Escrita de teste, escrevendo um pixel branco
+
+  movl $0xFFFF, (%edi)
 
   hlt
 
@@ -78,22 +79,20 @@
   .byte 0x00
 .gdt_end:
 
-.align 4
 .type .gdt_ptr, @object
 .gdt_ptr:
   .word .gdt_end - .gdt_start
   .long .gdt_start
 
-.align 4
-.type .Mode_Info, @object
-.Mode_Info:
+.type .ModeInfo, @object
+.ModeInfo:
   .ModeInfo_ModeAttributes:         .space      2,0 
   .ModeInfo_WinAAttributes:         .space      1,0
-  .ModeInfo_WinBAttributes:         .space      1,0 
+  .ModeInfo_WinBAttributes:         .space      1,0
   .ModeInfo_WinGranularity:         .space      2,0 
   .ModeInfo_WinSize:                .space      2,0 
   .ModeInfo_WinASegment:            .space      2,0 
-  .ModeInfo_WinBSegment:            .space      2,0 
+  .ModeInfo_WinBSegment:            .space      2,0
   .ModeInfo_WinFuncPtr:             .space      4,0 
   .ModeInfo_BytesPerScanLine:       .space      2,0 
   .ModeInfo_XResolution:            .space      2,0
@@ -124,3 +123,4 @@
 
 .section .atlas.mbr.magic, "a", @progbits
 .word 0xAA55
+

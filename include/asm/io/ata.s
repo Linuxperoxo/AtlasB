@@ -98,18 +98,18 @@
     #   Enviando comando de leitura para o controlador ATA
     movb $COMMAND_READ, %al
     movw $COMMAND_PORT, %dx
-    outb %dx
+    outb %al, %dx
   
     movw  $ERROR_PORT, %dx
     inb   %dx,         %al
     testb %al,         %al
-    jz    1f
+    jnz   1f
     jmp   2f
 
     1:
-      # TODO: Read Error
-      jmp .
-    
+      #movl $1, %eax # NOTE: Erro na leitura
+      jmp 3f
+
     2:
       movw 4(%ebp),  %bx  # NOTE: Setores a serem lidos
       movl 12(%ebp), %edi # NOTE: Endereço de destino dos dados lidos
@@ -136,13 +136,16 @@
       #       cada vez que executar essa intrução, caso DF = 1 (STD), %di será subtraido pelo tamanho da operação
       rep insw
       jmp 1b
-    
+
+    # TODO: Fazer um retorno de status pelo %eax
+
     3:
       popl %edi
       popl %edx
       popl %ecx
       popl %ebx
       popl %eax
+      popl %ebp
       ret
     
   .global ataLBA_W

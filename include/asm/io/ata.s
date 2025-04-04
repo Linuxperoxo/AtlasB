@@ -42,7 +42,7 @@
     # precisamos usar instruções OUT e IN de 8 bits, também precisamos
     # mandar os comandos para as portas corretas
 
-    pushl %ebp  
+    pushl %ebp
 
     leal 8(%esp), %ebp
 
@@ -108,7 +108,7 @@
 
     1:
       #movl $1, %eax # NOTE: Erro na leitura
-      jmp 3f
+      jmp .
 
     2:
       movw 4(%ebp),  %bx  # NOTE: Setores a serem lidos

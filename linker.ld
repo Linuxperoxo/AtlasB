@@ -34,6 +34,11 @@ SECTIONS {
     *(.atlas.mbr.magic)
   }
 
+  .atlas.struct : {
+    . = ALIGN(4);
+    *(.atlas.struct.atlas)
+  }
+
   /DISCARD/ : {
     *(.note*)
     *(.comment*)

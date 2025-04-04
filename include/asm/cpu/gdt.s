@@ -9,7 +9,7 @@
 .ifndef GDT
 .equ GDT, 0
 
-.section .atlas.data.gdt, "a", @progbits
+.section .atlas.data.gdt, "aw", @progbits
 .type .GDTS, @object
 .GDTS:
   .long 0x00000000

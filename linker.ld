@@ -44,4 +44,4 @@ SECTIONS {
     *(.comment*)
     *(.gnu*)
   }
-} 
+}

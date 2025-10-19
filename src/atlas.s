@@ -14,6 +14,9 @@
 
 .equ VBE_DEFAULT_MODE, 0x117
 
+.equ VIDEO_BIT_FLAG, 0x01
+.equ DEBUG_BIT_FLAG, 0x02
+
 .section .atlas.text.atlas, "ax", @progbits
 .code16
 .align 4
@@ -88,19 +91,24 @@
   # TODO: Voltar do PM para o RM para conseguir setar o modo de vídeo desejado
 
   # NOTE: Mandamos um ponteiro para a struct do modo de vídeo para o entry, caso o bit foi setado
-  xorl   %eax,        %eax
-  movl   $.ModeInfo,  %edi
-  movb   .AtlasFlags, %dl
-  testb  $0x01,       %dl
-  cmovnz %edi,        %eax
-  xorl   %ebx,        %ebx
-  xorl   %ecx,        %ecx
-  xorl   %edi,        %edi
-  
+  xorl   %eax,            %eax
+  movl   $.ModeInfo,      %edi
+  movb   .AtlasFlags,     %dl
+  testb  $VIDEO_BIT_FLAG, %dl
+  cmovnz %edi,            %eax
+  xorl   %ebx,            %ebx
+  xorl   %ecx,            %ecx
+  xorl   %edi,            %edi
+
   # NOTE: Passando o controle de execução
   movl .AtlasLoadDest, %ebx
   addl .AtlasOffset,   %ebx
+  testb $DEBUG_BIT_FLAG, %dl
+  jnz 1f
   jmp *%ebx
+
+  1:
+    jmp .
 
 # NOTE: Para melhor entendimento dessa parte veja as seguintes documentações
 #       -> https://wiki.osdev.org/VESA_Video_Modes
@@ -159,12 +167,13 @@
 #   AtlasVMode:    .word -> Modo de vídeo VBE que deseja ser setado, isso se for suportado. Caso seja 0x1000, o modo VGA 80x25 será usado 
 #   AtlasFlags:    .byte -> Flags gerais para o atlas:
 #                   * bit 0: Caso setado, vamos passar o ponteiro para a struct do modo de vídeo .ModeInfo será passado pelo %eax quando for passar o controle para a imagem
+#                   * bit 1: Debug bit, caso setado, nao vai dar jmp para o offset passado no header
 
 # NOTE: OBS: Caso essa struct seja feita em C, use __attribute__((packed)) para evitar alinhamento pelo compilador. Para zig use packed struct
 
-.section .atlas.struct.atlas, "w", @nobits
-.align 4
-.type .AtlasStruct, @object
+  .section .atlas.struct.atlas, "w", @nobits
+  .align 4
+  .type .AtlasStruct, @object
 .AtlasStruct:
   .AtlasMagic:    .space  2,0
   .AtlasLoadDest: .space  4,0
